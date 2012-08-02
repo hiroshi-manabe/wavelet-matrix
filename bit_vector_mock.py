@@ -38,25 +38,3 @@ class BitVectorMock(object):
                 rank += 1
 
         return rank
-
-    def Concatinate(self, another):
-        left_shift = (self._bit_len + 7) % 8 + 1
-        right_shift = 8 - left_shift
-
-        for i in range((another._bit_len + 7) / 8):
-            if right_shift:
-                self._bytearray[-1] |= (another._bytearray[i]
-                                        << left_shift) % 256
-            self._bytearray.append(another._bytearray[i] >> right_shift)
-
-        self._bit_len += another._bit_len
-
-    def Equals(self, another):
-        if self._bit_len != another._bit_len:
-            return False
-
-        for i in range(self._bit_len):
-            if self.PeekBit(i) != another.PeekBit(i):
-                return False
-
-        return True

@@ -23,28 +23,9 @@ class BitVectorMockTest(unittest.TestCase):
         self.assertRaises(ValueError, self.bit_vector.Rank, 0, 33)
         self.assertRaises(ValueError, self.bit_vector.Rank, 0, -1)
 
-    def test_equals(self):
-        another = BitVectorMock(self.bits)
-        self.assertTrue(self.bit_vector.Equals(another))
-
     def test_length(self):
         self.assertEqual(self.bit_vector.GetLength(), 32)
 
-    def test_concat(self):
-        data = [
-            [1, 0, 0, 0, 1, 1, 1, 0],
-            [1, 0, 0, 0],
-            [0, 1, 0, 1, 0],
-            [1,  1,  1,  0,  1,  1,  0,  0,  0,  0,  1,  0,  0,  0,  1],
-            ]
-
-        b = BitVectorMock()
-
-        for d in data:
-            another = BitVectorMock(d)
-            b.Concatinate(another)
-
-        self.assertTrue(self.bit_vector.Equals(b))
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(BitVectorMockTest)
