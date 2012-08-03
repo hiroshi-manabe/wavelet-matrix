@@ -6,9 +6,9 @@ class BitVectorMock(object):
         self._bit_len = 0
 
         for b in bit_array:
-            self.AddBit(b)
+            self.Add(b)
 
-    def AddBit(self, bit):
+    def Add(self, bit):
         if bit not in (0, 1):
             raise ValueError
 
@@ -18,7 +18,7 @@ class BitVectorMock(object):
         self._bytearray[-1] |= bit << (self._bit_len % 8)
         self._bit_len += 1
 
-    def PeekBit(self, pos):
+    def Peek(self, pos):
         if pos < 0 or pos >= self._bit_len:
             raise ValueError
 
@@ -37,7 +37,7 @@ class BitVectorMock(object):
         rank = 0
 
         for i in range(pos):
-            if self.PeekBit(i) == bit:
+            if self.Peek(i) == bit:
                 rank += 1
 
         return rank
@@ -53,7 +53,7 @@ class BitVectorMock(object):
 
         r = 0
         for i in range(self._bit_len):
-            if self.PeekBit(i) == bit:
+            if self.Peek(i) == bit:
                 r += 1
                 if rank == r:
                     return i + 1

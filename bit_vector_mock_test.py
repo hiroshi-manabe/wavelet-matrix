@@ -14,6 +14,14 @@ class BitVectorMockTest(unittest.TestCase):
                       ]
         self.bit_vector = BitVectorMock(self.bits)
 
+    def test_peek(self):
+        self.assertEqual(self.bit_vector.Peek(7), 0)
+        self.assertEqual(self.bit_vector.Peek(15), 1)
+        self.assertEqual(self.bit_vector.Peek(23), 0)
+        self.assertEqual(self.bit_vector.Peek(31), 1)
+        self.assertRaises(ValueError, self.bit_vector.Peek, 32)
+        self.assertRaises(ValueError, self.bit_vector.Peek, -1)
+
     def test_rank(self):
         self.assertEqual(self.bit_vector.Rank(0, 8), 4)
         self.assertEqual(self.bit_vector.Rank(1, 16), 7)

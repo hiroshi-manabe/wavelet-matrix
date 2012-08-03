@@ -46,7 +46,7 @@ class WaveletMatrix(object):
 
             for n in cur_array:
                 bit = 1 if (n & test_bit) else 0
-                self._wavelet_matrix[i].AddBit(bit)
+                self._wavelet_matrix[i].Add(bit)
                 next_array[bit].append(n)
 
             self._zero_counts.append(len(next_array[0]))
@@ -64,6 +64,23 @@ class WaveletMatrix(object):
             self._pos_cache.append(self._length)
             n += 1
 
+    def Access(self, pos):
+        if pos < 0 or pos >= self._length:
+            raise ValueError
+
+        index = pos
+        num = 0
+
+        for i in range(self._bits):
+            bit = self._wavelet_matrix[i].Peek(index)
+            num |= bit << i
+
+            index = self._wavelet_matrix[i].Rank(bit, index)
+
+            index += self._zero_counts[i] * bit
+
+        return num
+
     def Rank(self, num, pos):
         if num < 0 or num >= (1 << self._bits):
             raise ValueError
@@ -71,20 +88,22 @@ class WaveletMatrix(object):
         if pos < 0 or pos > self._length:
             raise ValueError
 
-        lower_bound = 0
-        upper_bound = pos
+        if pos == 0:
+            return 0
+
+        if self._pos_cache[num+1] == self._pos_cache[num]:
+            return 0
+
+        index = pos
 
         for i in range(self._bits):
             bit = 1 if num & (1 << i) else 0
 
-            upper_bound = self._wavelet_matrix[i].Rank(bit, upper_bound)
-            lower_bound = self._wavelet_matrix[i].Rank(bit, lower_bound)
+            index = self._wavelet_matrix[i].Rank(bit, index)
 
-            if bit:
-                lower_bound += self._zero_counts[i]
-                upper_bound += self._zero_counts[i]
+            index += self._zero_counts[i] * bit
         
-        return upper_bound - lower_bound
+        return index - self._pos_cache[num]
 
     def Select(self, num, rank):
         if num < 0 or num >= (1 << self._bits):
@@ -99,14 +118,13 @@ class WaveletMatrix(object):
         if rank > self._pos_cache[num+1] - self._pos_cache[num]:
             return -1
 
-        upper_bound = self._pos_cache[num] + rank
+        index = self._pos_cache[num] + rank
 
         for i in reversed(range(self._bits)):
             bit = 1 if num & (1 << i) else 0
 
-            if bit:
-                upper_bound -= self._zero_counts[i]
+            index -= self._zero_counts[i] * bit
 
-            upper_bound = self._wavelet_matrix[i].Select(bit, upper_bound)
+            index = self._wavelet_matrix[i].Select(bit, index)
 
-        return upper_bound
+        return index

@@ -12,6 +12,15 @@ class WaveletMatrixTest(unittest.TestCase):
               1, 11,  6,  1,  7, 10,  2,  7,
              14, 11,  1,  7,  5,  4, 14,  6])
 
+    def test_access(self):
+        self.assertEqual(self.wavelet_matrix.Access(24), 14)
+        self.assertEqual(self.wavelet_matrix.Access(23), 7)
+        self.assertEqual(self.wavelet_matrix.Access(31), 6)
+        self.assertEqual(self.wavelet_matrix.Access(0), 11)
+        self.assertRaises(ValueError, self.wavelet_matrix.Access, 136)
+        self.assertRaises(ValueError, self.wavelet_matrix.Access, -5)
+        self.assertRaises(ValueError, self.wavelet_matrix.Access, 32)
+
     def test_rank(self):
         self.assertEqual(self.wavelet_matrix.Rank(7, 24), 3)
         self.assertEqual(self.wavelet_matrix.Rank(7, 23), 2)
