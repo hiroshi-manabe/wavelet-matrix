@@ -20,9 +20,10 @@ class WaveletMatrix(object):
         cur_array = array
         self._wavelet_matrix = []
         self._zero_counts = []
+        self._pos_cache = []
 
         for i in range(bits):
-            test_bit = 1 << (bits - i - 1)
+            test_bit = 1 << i
             next_array = [[], []]
             self._wavelet_matrix.append(BitVectorMock())
 
@@ -35,9 +36,18 @@ class WaveletMatrix(object):
 
             cur_array = next_array[0] + next_array[1]
 
+        n = 0
+        for i in range(len(cur_array)):
+            while cur_array[i] >= n:
+                self._pos_cache.append(i)
+                n += 1
+
+        # self._pos_cache[max_value] is a sentinel
+        while n <= max_value:
+            self._pos_cache.append(self._length)
+            n += 1
 
     def Rank(self, num, pos):
-
         if num < 0 or num >= (1 << self._bits):
             raise ValueError
 
@@ -46,17 +56,40 @@ class WaveletMatrix(object):
 
         lower_bound = 0
         upper_bound = pos
-        prev_bit = 0
 
         for i in range(self._bits):
-            bit = 1 if num & (1 << (self._bits - i - 1)) else 0
-            if prev_bit:
-                lower_bound += self._zero_counts[i-1]
-                upper_bound += self._zero_counts[i-1]
+            bit = 1 if num & (1 << i) else 0
 
             upper_bound = self._wavelet_matrix[i].Rank(bit, upper_bound)
             lower_bound = self._wavelet_matrix[i].Rank(bit, lower_bound)
 
-            prev_bit = bit
+            if bit:
+                lower_bound += self._zero_counts[i]
+                upper_bound += self._zero_counts[i]
         
         return upper_bound - lower_bound
+
+    def Select(self, num, rank):
+        if num < 0 or num >= (1 << self._bits):
+            raise ValueError
+
+        if rank < 0:
+            raise ValueError
+
+        if rank == 0:
+            return 0
+
+        if rank > self._pos_cache[num+1] - self._pos_cache[num]:
+            return -1
+
+        upper_bound = self._pos_cache[num] + rank
+
+        for i in reversed(range(self._bits)):
+            bit = 1 if num & (1 << i) else 0
+
+            if bit:
+                upper_bound -= self._zero_counts[i]
+
+            upper_bound = self._wavelet_matrix[i].Select(bit, upper_bound)
+
+        return upper_bound
