@@ -28,6 +28,9 @@ class BitVectorMock(object):
         return self._bit_len
 
     def Rank(self, bit, pos):
+        if bit not in (0, 1):
+            raise ValueError
+
         if pos < 0:
             raise ValueError
 
@@ -38,3 +41,21 @@ class BitVectorMock(object):
                 rank += 1
 
         return rank
+
+    def Select(self, bit, rank):
+        if bit not in (0, 1):
+            raise ValueError
+
+        if rank < 0:
+            raise ValueError
+
+        pos = 0
+
+        r = 0
+        for i in range(self._bit_len):
+            if self.PeekBit(i) == bit:
+                r += 1
+                if rank == r:
+                    return i + 1
+
+        return -1
