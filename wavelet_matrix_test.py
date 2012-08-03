@@ -31,6 +31,24 @@ class WaveletMatrixTest(unittest.TestCase):
         self.assertRaises(ValueError, self.wavelet_matrix.Rank, -5, 24)
         self.assertRaises(ValueError, self.wavelet_matrix.Rank, 0, 33)
 
+    def test_rank_less_than(self):
+        self.assertEqual(self.wavelet_matrix.RankLessThan(8, 8), 5)
+        self.assertEqual(self.wavelet_matrix.RankLessThan(12, 16), 10)
+        self.assertEqual(self.wavelet_matrix.RankLessThan(5, 24), 7)
+        self.assertEqual(self.wavelet_matrix.RankLessThan(14, 32), 29)
+        self.assertEqual(self.wavelet_matrix.RankLessThan(13, 0), 0)
+        self.assertRaises(ValueError, self.wavelet_matrix.RankLessThan, 136, 2)
+        self.assertRaises(ValueError, self.wavelet_matrix.RankLessThan, -5, 1)
+
+    def test_rank_more_than(self):
+        self.assertEqual(self.wavelet_matrix.RankMoreThan(8, 8), 3)
+        self.assertEqual(self.wavelet_matrix.RankMoreThan(12, 16), 3)
+        self.assertEqual(self.wavelet_matrix.RankMoreThan(5, 24), 16)
+        self.assertEqual(self.wavelet_matrix.RankMoreThan(14, 32), 1)
+        self.assertEqual(self.wavelet_matrix.RankMoreThan(13, 0), 0)
+        self.assertRaises(ValueError, self.wavelet_matrix.RankMoreThan, 136, 2)
+        self.assertRaises(ValueError, self.wavelet_matrix.RankMoreThan, -5, 1)
+
     def test_select(self):
         self.assertEqual(self.wavelet_matrix.Select(7, 3), 24)
         self.assertEqual(self.wavelet_matrix.Select(7, 2), 21)
@@ -40,6 +58,7 @@ class WaveletMatrixTest(unittest.TestCase):
         self.assertEqual(self.wavelet_matrix.Select(11, 5), -1)
         self.assertRaises(ValueError, self.wavelet_matrix.Select, 136, 2)
         self.assertRaises(ValueError, self.wavelet_matrix.Select, -5, 1)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(WaveletMatrixTest)
 
