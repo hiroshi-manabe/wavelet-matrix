@@ -26,7 +26,7 @@ class WaveletMatrixTest(unittest.TestCase):
         self.assertEqual(self.wavelet_matrix.Rank(7, 23), 2)
         self.assertEqual(self.wavelet_matrix.Rank(11, 31), 4)
         self.assertEqual(self.wavelet_matrix.Rank(0, 32), 2)
-        self.assertEqual(self.wavelet_matrix.Rank(11, 0), 0)
+        self.assertEqual(self.wavelet_matrix.Rank(15, 0), 0)
         self.assertRaises(ValueError, self.wavelet_matrix.Rank, 136, 16)
         self.assertRaises(ValueError, self.wavelet_matrix.Rank, -5, 24)
         self.assertRaises(ValueError, self.wavelet_matrix.Rank, 0, 33)
@@ -54,11 +54,25 @@ class WaveletMatrixTest(unittest.TestCase):
         self.assertEqual(self.wavelet_matrix.Select(7, 2), 21)
         self.assertEqual(self.wavelet_matrix.Select(11, 4), 26)
         self.assertEqual(self.wavelet_matrix.Select(0, 2), 10)
-        self.assertEqual(self.wavelet_matrix.Select(11, 0), 0)
         self.assertEqual(self.wavelet_matrix.Select(11, 5), -1)
+        self.assertRaises(ValueError, self.wavelet_matrix.Select, 11, 0)
         self.assertRaises(ValueError, self.wavelet_matrix.Select, 136, 2)
         self.assertRaises(ValueError, self.wavelet_matrix.Select, -5, 1)
 
+    def test_quantile_range(self):
+        self.assertEqual(self.wavelet_matrix.QuantileRange(0, 8, 2), (5, 4))
+        self.assertEqual(self.wavelet_matrix.QuantileRange(8, 16, 6), (13, 12))
+        self.assertEqual(self.wavelet_matrix.QuantileRange(20, 32, 11),
+                         (14, 30))
+        self.assertEqual(self.wavelet_matrix.QuantileRange(10, 26, 0), (1, 16))
+        self.assertRaises(ValueError, self.wavelet_matrix.QuantileRange,
+                          20, 32, 12)
+        self.assertRaises(ValueError, self.wavelet_matrix.QuantileRange,
+                          -5, 1, 3)
+        self.assertRaises(ValueError, self.wavelet_matrix.QuantileRange,
+                          15, 33, 3)
+        self.assertRaises(ValueError, self.wavelet_matrix.QuantileRange,
+                          15, 20, -1)
 
 suite = unittest.TestLoader().loadTestsFromTestCase(WaveletMatrixTest)
 

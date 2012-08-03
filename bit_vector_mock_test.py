@@ -38,8 +38,9 @@ class BitVectorMockTest(unittest.TestCase):
         self.assertEqual(self.bit_vector.Select(1, 14), 32)
         self.assertEqual(self.bit_vector.Select(1, 13), 28)
         self.assertEqual(self.bit_vector.Select(1, 15), -1)
+        self.assertRaises(ValueError,self.bit_vector.Select, 1, 0)
         self.assertRaises(ValueError,self.bit_vector.Select, 3, 5)
-        self.assertRaises(ValueError, self.bit_vector.Rank, 0, -1)
+        self.assertRaises(ValueError, self.bit_vector.Select, 0, -1)
 
     def test_length(self):
         self.assertEqual(self.bit_vector.GetLength(), 32)

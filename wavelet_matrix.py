@@ -85,7 +85,8 @@ class WaveletMatrix(object):
 
             index = self._wavelet_matrix[i].Rank(bit, index)
 
-            index += self._zero_counts[i] * bit
+            if bit:
+                index += self._zero_counts[i]
 
         return num
 
@@ -111,7 +112,8 @@ class WaveletMatrix(object):
 
             index = self._wavelet_matrix[i].Rank(bit, index)
 
-            index += self._zero_counts[i] * bit
+            if bit:
+                index += self._zero_counts[i]
         
         return index - self._pos_cache[num_rev]
 
@@ -145,8 +147,9 @@ class WaveletMatrix(object):
             non_match_bits = range_bits - (end_pos - begin_pos)
             more_and_less[bit] += non_match_bits
 
-            begin_pos += self._zero_counts[i] * bit
-            end_pos += self._zero_counts[i] * bit
+            if bit:
+                begin_pos += self._zero_counts[i]
+                end_pos += self._zero_counts[i]
 
         return (more_and_less[1], more_and_less[0], end_pos - begin_pos)
 
@@ -154,11 +157,8 @@ class WaveletMatrix(object):
         if num < 0 or num >= (1 << self._bits):
             raise ValueError
 
-        if rank < 0:
+        if rank <= 0:
             raise ValueError
-
-        if rank == 0:
-            return 0
 
         num_rev = self._bit_reverse_table[num]
 
@@ -170,9 +170,40 @@ class WaveletMatrix(object):
         for i in reversed(range(self._bits)):
             bit = 1 if num & (1 << (self._bits - i - 1)) else 0
 
-            index -= self._zero_counts[i] * bit
+            if bit:
+                index -= self._zero_counts[i]
 
             index = self._wavelet_matrix[i].Select(bit, index)
 
         return index
+
+    def QuantileRange(self, begin_pos, end_pos, k):
+        if (begin_pos < 0 or begin_pos > self._length
+            or end_pos < 0 or end_pos > self._length):
+            raise ValueError
+
+        if k < 0 or k >= end_pos - begin_pos:
+            raise ValueError
+
+        num = 0
+
+        for i in range(self._bits):
+            begin_zero = self._wavelet_matrix[i].Rank(0, begin_pos)
+            end_zero = self._wavelet_matrix[i].Rank(0, end_pos)
+            zero_bits = end_zero - begin_zero
+
+            bit = 0 if k < zero_bits else 1
+
+            if bit:
+                k -= zero_bits
+                begin_pos += self._zero_counts[i] - begin_zero
+                end_pos += self._zero_counts[i] - end_zero
+            else:
+                begin_pos = begin_zero
+                end_pos = end_zero
+
+            num |= bit << (self._bits - i - 1)
+
+        return (num, self.Select(num, k+1) - 1)
+
 
