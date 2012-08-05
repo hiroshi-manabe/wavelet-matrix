@@ -81,7 +81,8 @@ class WaveletMatrix(object):
 
         for i in range(self._bits):
             bit = self._wavelet_matrix[i].Peek(index)
-            num |= bit << (self._bits - i - 1)
+            num <<= 1
+            num |= bit
 
             index = self._wavelet_matrix[i].Rank(bit, index)
 
