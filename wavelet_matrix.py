@@ -21,6 +21,10 @@ from bit_vector_mock import BitVectorMock
 
 class WaveletMatrix(object):
     def __init__(self, bits, array):
+        def get_reversed_first_bits(num, max_bit, bit_num, bit_reverse_table):
+            return bit_reverse_table[num & ((1 << max_bit) -
+                                            (1 << (max_bit - bit_num)))]
+
         if bits < 0:
             raise ValueError
 
@@ -46,16 +50,28 @@ class WaveletMatrix(object):
         self._wavelet_matrix = []
         self._zero_counts = []
         self._pos_cache = []
+        self._node_begin_pos = []
 
         for i in range(bits):
             test_bit = 1 << (bits - i - 1)
             next_array = [[], []]
             self._wavelet_matrix.append(BitVectorMock())
+            node_count = 1 << i
+            self._node_begin_pos.append([])
+            cur_node = 0
 
-            for n in cur_array:
+            for j in range(len(cur_array)):
+                n = cur_array[j]
                 bit = 1 if (n & test_bit) else 0
                 self._wavelet_matrix[i].Add(bit)
                 next_array[bit].append(n)
+
+                while cur_node <= get_reversed_first_bits(
+                    n, bits, i,
+                    self._bit_reverse_table):
+
+                    self._node_begin_pos[-1].append(j)
+                    cur_node += 1
 
             self._zero_counts.append(len(next_array[0]))
 
