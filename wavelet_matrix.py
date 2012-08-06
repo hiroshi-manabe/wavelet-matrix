@@ -211,6 +211,8 @@ class WaveletMatrix(object):
             node_num |= bit << i
             num |= bit << (self._bits - i - 1)
 
-        return (num, self.Select(num, k+1) - 1)
+        return (num, self.Select(
+                num, begin_pos + k -
+                self._node_begin_pos[-1][self._bit_reverse_table[num]] + 1) - 1)
 
 
