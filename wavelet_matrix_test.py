@@ -65,6 +65,7 @@ class WaveletMatrixTest(unittest.TestCase):
         self.assertEqual(self.wavelet_matrix.QuantileRange(20, 32, 11),
                          (14, 30))
         self.assertEqual(self.wavelet_matrix.QuantileRange(10, 26, 0), (1, 16))
+        self.assertEqual(self.wavelet_matrix.QuantileRange(0, 23, 9), (6, 14))
         self.assertRaises(ValueError, self.wavelet_matrix.QuantileRange,
                           20, 32, 12)
         self.assertRaises(ValueError, self.wavelet_matrix.QuantileRange,
