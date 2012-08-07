@@ -2,6 +2,7 @@ wavelet-matrix: a test implementation of the Wavelet Matrix
 		(http://www.dcc.uchile.cl/~gnavarro/ps/spire12.4.pdf)
 
 Copyright (c) 2012 Hiroshi Manabe (manabe.hiroshi@gmail.com)
+Based on wat-array (2010 Daisuke Okanohara)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright (c) 2012 Hiroshi Manabe (manabe.hiroshi@gmail.com)
+# Based on wat-array (2010 Daisuke Okanohara)
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
