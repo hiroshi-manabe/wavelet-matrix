@@ -178,7 +178,7 @@ class WaveletMatrix(object):
 
         num_rev = self._bit_reverse_table[num]
 
-        if (rank > self._node_begin_pos[self._bits - 1][num_rev+1] -
+        if (rank > self._node_begin_pos[-1][num_rev+1] -
             self._node_begin_pos[-1][num_rev]):
             return -1
 
