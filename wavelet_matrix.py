@@ -50,6 +50,8 @@ class WaveletMatrix(object):
         cur_array = array
         self._wavelet_matrix = []
         self._zero_counts = []
+        self._node_begin_pos = []
+        prev_begin_pos = [0]
 
         for i in range(bits):
             test_bit = 1 << (bits - i - 1)
@@ -62,34 +64,18 @@ class WaveletMatrix(object):
                 next_array[bit].append(n)
 
             self._zero_counts.append(len(next_array[0]))
+            self._node_begin_pos.append([0] * (1 << (i+1)))
 
             cur_array = next_array[0] + next_array[1]
 
-        n = 0
-        self._node_begin_pos = [0] * bits
-        self._node_begin_pos[bits-1] = []
+            for j in range(1 << i):
+                zero_count = self._wavelet_matrix[i].Rank(0, prev_begin_pos[j])
+                self._node_begin_pos[i][j] = zero_count
+                self._node_begin_pos[i][j + (1 << i)] = (
+                    prev_begin_pos[j] - zero_count + self._zero_counts[i])
 
-        for i in range(len(cur_array)):
-            while self._bit_reverse_table[cur_array[i]] >= n:
-                self._node_begin_pos[-1].append(i)
-                n += 1
-
-        # self._node_begin_pos[bits-1][max_value] is a sentinel
-        while n <= max_value:
-            self._node_begin_pos[-1].append(self._length)
-            n += 1
-
-        for i in reversed(range(bits-1)):
-            self._node_begin_pos[i] = []
-            pos = 0
-            for j in range(1 << (i+1)):
-                self._node_begin_pos[i].append(pos)
-                pos += (self._node_begin_pos[i+1][j+1] -
-                        self._node_begin_pos[i+1][j] +
-                        self._node_begin_pos[i+1][j + (1 << (i+1)) + 1] -
-                        self._node_begin_pos[i+1][j + (1 << (i+1))])
-
-            self._node_begin_pos[i].append(pos)
+            self._node_begin_pos[i].append(self._length)
+            prev_begin_pos = self._node_begin_pos[i]
 
 
     def Access(self, pos):
