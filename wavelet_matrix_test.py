@@ -6,7 +6,7 @@ from wavelet_matrix import WaveletMatrix
 class WaveletMatrixTest(unittest.TestCase):
     def setUp(self):
         self.wavelet_matrix = WaveletMatrix(
-            4 ,
+            4,
             [11,  0, 15,  6,  5,  2,  7, 12,
              11,  0, 12, 12, 13,  4,  6, 13,
               1, 11,  6,  1,  7, 10,  2,  7,
@@ -48,6 +48,17 @@ class WaveletMatrixTest(unittest.TestCase):
         self.assertEqual(self.wavelet_matrix.RankMoreThan(13, 0), 0)
         self.assertRaises(ValueError, self.wavelet_matrix.RankMoreThan, 136, 2)
         self.assertRaises(ValueError, self.wavelet_matrix.RankMoreThan, -5, 1)
+
+    def test_rank_all(self):
+        self.assertEqual(self.wavelet_matrix.RankAll(8, 6, 20), (7, 7, 0))
+        self.assertEqual(self.wavelet_matrix.RankAll(11, 0, 14), (7, 5, 2))
+        self.assertEqual(self.wavelet_matrix.RankAll(14, 0, 32), (29, 1, 2))
+        self.assertEqual(self.wavelet_matrix.RankAll(3, 18, 32), (3, 11, 0))
+        self.assertEqual(self.wavelet_matrix.RankAll(11, 18, 18), (0, 0, 0))
+        self.assertEqual(self.wavelet_matrix.RankAll(6, 18, 11), (0, 0, 0))
+        self.assertRaises(ValueError, self.wavelet_matrix.RankAll, 16, 2, 3)
+        self.assertRaises(ValueError, self.wavelet_matrix.RankAll, 0, -1, 3)
+        self.assertRaises(ValueError, self.wavelet_matrix.RankAll, 0, 5, 33)
 
     def test_select(self):
         self.assertEqual(self.wavelet_matrix.Select(7, 3), 24)
