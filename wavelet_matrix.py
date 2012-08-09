@@ -112,46 +112,62 @@ class WaveletMatrix(object):
         return num
 
     def Rank(self, num, pos):
-        (less, more, rank) = self.RankAll(num, pos)
+        (less, more, rank) = self.RankAll(num, 0, pos)
         return rank
 
     def RankLessThan(self, num, pos):
-        (less, more, rank) = self.RankAll(num, pos)
+        (less, more, rank) = self.RankAll(num, 0, pos)
         return less
 
     def RankMoreThan(self, num, pos):
-        (less, more, rank) = self.RankAll(num, pos)
+        (less, more, rank) = self.RankAll(num, 0, pos)
         return more
 
-    def RankAll(self, num, pos):
+    def RankAll(self, num, begin_pos, end_pos):
         if num < 0 or num >= (1 << self._bits):
             raise ValueError
 
-        if pos < 0 or pos > self._length:
+        if (begin_pos < 0 or begin_pos > self._length or
+            end_pos < 0 or end_pos > self._length):
             raise ValueError
 
-        if pos == 0:
+        if begin_pos >= end_pos:
             return (0, 0, 0)
 
         more_and_less = [0, 0]
         node_num = 0
         node_begin_pos = 0
 
+        from_zero = True if begin_pos == 0 else False
+        to_end = True if end_pos == self._length else False
+
         for i in range(self._bits):
             bit = 1 if num & (1 << self._bits - i - 1) else 0
-            range_bits = pos - node_begin_pos
+            range_bits = end_pos - begin_pos
 
-            node_num |= bit << i
-            node_begin_pos = self._node_begin_pos[i][node_num]
-            pos = self._wavelet_matrix[i].Rank(bit, pos)
+            if from_zero:
+                begin_zero = self._node_begin_pos[i][node_num]
+            else:
+                begin_zero =  self._wavelet_matrix[i].Rank(0, begin_pos)
+
+            if to_end:
+                end_zero = self._node_begin_pos[i][node_num+1]
+            else:
+                end_zero = self._wavelet_matrix[i].Rank(0, end_pos)
+
             if bit:
-                pos += self._zero_counts[i]
+                begin_pos += self._zero_counts[i] - begin_zero
+                end_pos += self._zero_counts[i] - end_zero
+            else:
+                begin_pos = begin_zero
+                end_pos = end_zero
 
-            non_match_bits = range_bits - (pos - node_begin_pos)
+            non_match_bits = range_bits - (end_pos - begin_pos)
+            node_num |= bit << i
             more_and_less[bit] += non_match_bits
 
         return (more_and_less[1], more_and_less[0],
-                pos - node_begin_pos)
+                end_pos - begin_pos)
 
     def Select(self, num, rank):
         if num < 0 or num >= (1 << self._bits):
@@ -188,6 +204,7 @@ class WaveletMatrix(object):
 
         num = 0
         from_zero = True if begin_pos == 0 else False
+        to_end = True if end_pos == self._length else False
         node_num = 0
 
         for i in range(self._bits):
@@ -196,7 +213,11 @@ class WaveletMatrix(object):
             else:
                 begin_zero = self._wavelet_matrix[i].Rank(0, begin_pos)
 
-            end_zero = self._wavelet_matrix[i].Rank(0, end_pos)
+            if to_end:
+                end_zero = self._node_begin_pos[i][node_num+1]
+            else:
+                end_zero = self._wavelet_matrix[i].Rank(0, end_pos)
+
             zero_bits = end_zero - begin_zero
 
             bit = 0 if k < zero_bits else 1
