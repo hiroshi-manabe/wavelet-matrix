@@ -47,7 +47,7 @@ class BitVectorMock(object):
             raise ValueError
 
         if rank <= 0:
-            raise ValueError
+            return -1
 
         pos = 0
 
