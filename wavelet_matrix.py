@@ -21,7 +21,7 @@
 from bit_vector_mock import BitVectorMock
 
 class WaveletMatrix(object):
-    def __init__(self, bits, array):
+    def __init__(self, bits, array, create_cache=True):
         def get_reversed_first_bits(num, max_bit, bit_num, bit_reverse_table):
             return bit_reverse_table[num & ((1 << max_bit) -
                                             (1 << (max_bit - bit_num)))]
@@ -34,6 +34,8 @@ class WaveletMatrix(object):
         max_value = 1 << bits
 
         self._bit_reverse_table = []
+        self._has_cache = create_cache
+
         for i in range(max_value):
             rev = 0
             for j in range(bits):
@@ -50,8 +52,6 @@ class WaveletMatrix(object):
         cur_array = array
         self._wavelet_matrix = []
         self._zero_counts = []
-        self._node_begin_pos = []
-        prev_begin_pos = [0]
 
         for i in range(bits):
             test_bit = 1 << (bits - i - 1)
@@ -64,18 +64,23 @@ class WaveletMatrix(object):
                 next_array[bit].append(n)
 
             self._zero_counts.append(len(next_array[0]))
-            self._node_begin_pos.append([0] * (1 << (i+1)))
 
             cur_array = next_array[0] + next_array[1]
 
-            for j in range(1 << i):
-                zero_count = self._wavelet_matrix[i].Rank(0, prev_begin_pos[j])
-                self._node_begin_pos[i][j] = zero_count
-                self._node_begin_pos[i][j + (1 << i)] = (
-                    prev_begin_pos[j] - zero_count + self._zero_counts[i])
+        if create_cache:
+            self._node_begin_pos = []
+            prev_begin_pos = [0]
 
-            self._node_begin_pos[i].append(self._length)
-            prev_begin_pos = self._node_begin_pos[i]
+            for i in range(bits):
+                self._node_begin_pos.append([0] * (1 << (i+1)))
+                for j in range(1 << i):
+                    zero_count = self._wavelet_matrix[i].Rank(
+                        0, prev_begin_pos[j])
+                    self._node_begin_pos[i][j] = zero_count
+                    self._node_begin_pos[i][j + (1 << i)] = (
+                        prev_begin_pos[j] - zero_count + self._zero_counts[i])
+                self._node_begin_pos[i].append(self._length)
+                prev_begin_pos = self._node_begin_pos[i]
 
 
     def Access(self, pos):
@@ -123,8 +128,8 @@ class WaveletMatrix(object):
         more_and_less = [0, 0]
         node_num = 0
 
-        from_zero = True if begin_pos == 0 else False
-        to_end = True if end_pos == self._length else False
+        from_zero = True if begin_pos == 0  and self._has_cache else False
+        to_end = True if end_pos == self._length and self._has_cache else False
 
         for i in range(self._bits):
             bit = 1 if num & (1 << self._bits - i - 1) else 0
@@ -164,17 +169,22 @@ class WaveletMatrix(object):
         if rank <= 0:
             raise ValueError
 
-        if pos == 0:
+        if pos < 0 or pos >= self._length:
+            raise ValueError
+
+        if pos == 0 and self._has_cache:
             num_rev = self._bit_reverse_table[num]
-            index = self._node_begin_pos[-1][num_rev] + rank
+            index = self._node_begin_pos[-1][num_rev] 
         else:
-            index = 0
+            index = pos
             for i in range(self._bits):
                 bit = 1 if  num & (1 << (self._bits - i - 1)) else 0
                 index = self._wavelet_matrix[i].Rank(bit, index)
 
                 if bit:
                     index += self._zero_counts[i]
+
+        index += rank
 
         for i in reversed(range(self._bits)):
             bit = 1 if num & (1 << (self._bits - i - 1)) else 0
@@ -197,9 +207,10 @@ class WaveletMatrix(object):
         if k < 0 or k >= end_pos - begin_pos:
             raise ValueError
 
+        orig_begin_pos = begin_pos
         num = 0
-        from_zero = True if begin_pos == 0 else False
-        to_end = True if end_pos == self._length else False
+        from_zero = True if begin_pos == 0 and self._has_cache else False
+        to_end = True if end_pos == self._length and self._has_cache else False
         node_num = 0
 
         for i in range(self._bits):
@@ -228,8 +239,12 @@ class WaveletMatrix(object):
             node_num |= bit << i
             num |= bit << (self._bits - i - 1)
 
-        return (num, self.Select(
-                num, begin_pos + k -
-                self._node_begin_pos[-1][self._bit_reverse_table[num]] + 1) - 1)
+        if self._has_cache:
+            return (num, self.Select(
+                    num, begin_pos + k -
+                    self._node_begin_pos[-1][
+                        self._bit_reverse_table[num]] + 1) - 1)
+        else:
+            return (num, self.SelectFromPos(num, orig_begin_pos, k + 1) - 1)
 
 

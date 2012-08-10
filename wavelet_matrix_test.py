@@ -3,6 +3,8 @@
 import unittest
 from wavelet_matrix import WaveletMatrix
 
+g_create_cache_flag = False
+
 class WaveletMatrixTest(unittest.TestCase):
     def setUp(self):
         self.wavelet_matrix = WaveletMatrix(
@@ -10,7 +12,8 @@ class WaveletMatrixTest(unittest.TestCase):
             [11,  0, 15,  6,  5,  2,  7, 12,
              11,  0, 12, 12, 13,  4,  6, 13,
               1, 11,  6,  1,  7, 10,  2,  7,
-             14, 11,  1,  7,  5,  4, 14,  6])
+             14, 11,  1,  7,  5,  4, 14,  6],
+            create_cache=g_create_cache_flag)
 
     def test_access(self):
         self.assertEqual(self.wavelet_matrix.Access(24), 14)
@@ -70,6 +73,19 @@ class WaveletMatrixTest(unittest.TestCase):
         self.assertRaises(ValueError, self.wavelet_matrix.Select, 136, 2)
         self.assertRaises(ValueError, self.wavelet_matrix.Select, -5, 1)
 
+    def test_select_from_pos(self):
+        self.assertEqual(self.wavelet_matrix.SelectFromPos(7, 8, 3), 28)
+        self.assertEqual(self.wavelet_matrix.SelectFromPos(6, 17, 2), 32)
+        self.assertEqual(self.wavelet_matrix.SelectFromPos(11, 1, 1), 9)
+        self.assertEqual(self.wavelet_matrix.SelectFromPos(0, 0, 2), 10)
+        self.assertEqual(self.wavelet_matrix.SelectFromPos(11, 1, 4), -1)
+        self.assertRaises(ValueError, self.wavelet_matrix.SelectFromPos,
+                          11, -1, 0)
+        self.assertRaises(ValueError, self.wavelet_matrix.SelectFromPos,
+                          7, 32, 2)
+        self.assertRaises(ValueError, self.wavelet_matrix.SelectFromPos,
+                          -5, 2, 1)
+
     def test_quantile_range(self):
         self.assertEqual(self.wavelet_matrix.QuantileRange(0, 8, 2), (5, 4))
         self.assertEqual(self.wavelet_matrix.QuantileRange(8, 16, 6), (13, 12))
@@ -89,4 +105,6 @@ class WaveletMatrixTest(unittest.TestCase):
 
 suite = unittest.TestLoader().loadTestsFromTestCase(WaveletMatrixTest)
 
+unittest.TextTestRunner(verbosity=2).run(suite)
+g_create_cache_flag = True
 unittest.TextTestRunner(verbosity=2).run(suite)
