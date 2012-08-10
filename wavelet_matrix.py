@@ -122,7 +122,6 @@ class WaveletMatrix(object):
 
         more_and_less = [0, 0]
         node_num = 0
-        node_begin_pos = 0
 
         from_zero = True if begin_pos == 0 else False
         to_end = True if end_pos == self._length else False
@@ -156,19 +155,26 @@ class WaveletMatrix(object):
                 end_pos - begin_pos)
 
     def Select(self, num, rank):
+        return self.SelectFromPos(num, 0, rank)
+
+    def SelectFromPos(self, num, pos, rank):
         if num < 0 or num >= (1 << self._bits):
             raise ValueError
 
         if rank <= 0:
             raise ValueError
 
-        num_rev = self._bit_reverse_table[num]
+        if pos == 0:
+            num_rev = self._bit_reverse_table[num]
+            index = self._node_begin_pos[-1][num_rev] + rank
+        else:
+            index = 0
+            for i in range(self._bits):
+                bit = 1 if  num & (1 << (self._bits - i - 1)) else 0
+                index = self._wavelet_matrix[i].Rank(bit, index)
 
-        if (rank > self._node_begin_pos[-1][num_rev+1] -
-            self._node_begin_pos[-1][num_rev]):
-            return -1
-
-        index = self._node_begin_pos[-1][num_rev] + rank
+                if bit:
+                    index += self._zero_counts[i]
 
         for i in reversed(range(self._bits)):
             bit = 1 if num & (1 << (self._bits - i - 1)) else 0
@@ -177,6 +183,9 @@ class WaveletMatrix(object):
                 index -= self._zero_counts[i]
 
             index = self._wavelet_matrix[i].Select(bit, index)
+
+            if index == -1:
+                return -1
 
         return index
 
