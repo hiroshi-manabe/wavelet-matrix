@@ -60,28 +60,26 @@ class WaveletMatrix(object):
 
             for i in range(bits):
                 self._wavelet_matrix.append(BitVectorMock(self._length))
+                self._node_begin_pos.append([0] * ((1 << (i+1)) + 1))
+
                 for n in array:
                     bit = 1 if (n & (1 << bits - i - 1)) else 0
                     subscript = get_reversed_first_bits(n, bits, i,
                                                         self._bit_reverse_table)
                     self._wavelet_matrix[i].Set(prev_begin_pos[subscript], bit)
                     prev_begin_pos[subscript] += 1
+                    self._node_begin_pos[i][subscript + (bit << i) + 1] += 1
 
                 for n in reversed(range(1 << i)):
                     prev_begin_pos[n+1] = prev_begin_pos[n]
 
                 prev_begin_pos[0] = 0
-                self._zero_counts.append(
-                    self._wavelet_matrix[i].Rank(0, self._length))
 
-                self._node_begin_pos.append([0] * ((1 << (i+1)) + 1))
+                for j in range(1 << (i+1)):
+                    self._node_begin_pos[i][j+1] += self._node_begin_pos[i][j]
 
-                for j in range(1 << i):
-                    zero_count = self._wavelet_matrix[i].Rank(
-                        0, prev_begin_pos[j])
-                    self._node_begin_pos[i][j] = zero_count
-                    self._node_begin_pos[i][j + (1 << i)] = (
-                        prev_begin_pos[j] - zero_count + self._zero_counts[i])
+                self._zero_counts.append(self._node_begin_pos[i][1 << i])
+
                 prev_begin_pos = self._node_begin_pos[i]
 
         else:
