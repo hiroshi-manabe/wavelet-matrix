@@ -37,12 +37,11 @@ class WaveletMatrix(object):
         if create_cache:
             self._bit_reverse_table = []
 
-        for i in range(max_value):
-            rev = 0
-            for j in range(bits):
-                rev |= ((i & (1 << j)) >> j) << (bits - j - 1)
+            for i in range(max_value):
+                rev = 0
+                for j in range(bits):
+                    rev |= ((i & (1 << j)) >> j) << (bits - j - 1)
 
-            if create_cache:
                 self._bit_reverse_table.append(rev)
 
         for n in array:
