@@ -74,7 +74,7 @@ class WaveletMatrix(object):
                 self._zero_counts.append(
                     self._wavelet_matrix[i].Rank(0, self._length))
 
-                self._node_begin_pos.append([0] * (1 << (i+1) + 1))
+                self._node_begin_pos.append([0] * ((1 << (i+1)) + 1))
 
                 for j in range(1 << i):
                     zero_count = self._wavelet_matrix[i].Rank(
