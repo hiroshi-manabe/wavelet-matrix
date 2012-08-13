@@ -1,22 +1,18 @@
 #!/usr/bin/env python
 
 class BitVectorMock(object):
-    def __init__(self, bit_array=[]):
-        self._bytearray = bytearray()
-        self._bit_len = 0
+    def __init__(self, size):
+        self._bytearray = bytearray(size + 7 / 8)
+        self._bit_len = size
 
-        for b in bit_array:
-            self.Add(b)
+    def Set(self, pos, bit):
+        if pos >= self._bit_len:
+            raise ValueError
 
-    def Add(self, bit):
         if bit not in (0, 1):
             raise ValueError
 
-        if (self._bit_len % 8) == 0:
-            self._bytearray.append(0)
-
-        self._bytearray[-1] |= bit << (self._bit_len % 8)
-        self._bit_len += 1
+        self._bytearray[pos / 8] |= bit << (pos % 8)
 
     def Peek(self, pos):
         if pos < 0 or pos >= self._bit_len:

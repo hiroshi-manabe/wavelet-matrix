@@ -33,15 +33,17 @@ class WaveletMatrix(object):
 
         max_value = 1 << bits
 
-        self._bit_reverse_table = []
         self._has_cache = create_cache
+        if create_cache:
+            self._bit_reverse_table = []
 
         for i in range(max_value):
             rev = 0
             for j in range(bits):
                 rev |= ((i & (1 << j)) >> j) << (bits - j - 1)
 
-            self._bit_reverse_table.append(rev)
+            if create_cache:
+                self._bit_reverse_table.append(rev)
 
         for n in array:
             if n >= max_value:
@@ -53,34 +55,51 @@ class WaveletMatrix(object):
         self._wavelet_matrix = []
         self._zero_counts = []
 
-        for i in range(bits):
-            test_bit = 1 << (bits - i - 1)
-            next_array = [[], []]
-            self._wavelet_matrix.append(BitVectorMock())
-
-            for n in cur_array:
-                bit = 1 if (n & test_bit) else 0
-                self._wavelet_matrix[i].Add(bit)
-                next_array[bit].append(n)
-
-            self._zero_counts.append(len(next_array[0]))
-
-            cur_array = next_array[0] + next_array[1]
-
         if create_cache:
             self._node_begin_pos = []
-            prev_begin_pos = [0]
+            prev_begin_pos = [0, self._length]
 
             for i in range(bits):
-                self._node_begin_pos.append([0] * (1 << (i+1)))
+                self._wavelet_matrix.append(BitVectorMock(self._length))
+                for n in array:
+                    bit = 1 if (n & (1 << bits - i - 1)) else 0
+                    subscript = get_reversed_first_bits(n, bits, i,
+                                                        self._bit_reverse_table)
+                    self._wavelet_matrix[i].Set(prev_begin_pos[subscript], bit)
+                    prev_begin_pos[subscript] += 1
+
+                for n in reversed(range(1 << i)):
+                    prev_begin_pos[n+1] = prev_begin_pos[n]
+
+                prev_begin_pos[0] = 0
+                self._zero_counts.append(
+                    self._wavelet_matrix[i].Rank(0, self._length))
+
+                self._node_begin_pos.append([0] * (1 << (i+1) + 1))
+
                 for j in range(1 << i):
                     zero_count = self._wavelet_matrix[i].Rank(
                         0, prev_begin_pos[j])
                     self._node_begin_pos[i][j] = zero_count
                     self._node_begin_pos[i][j + (1 << i)] = (
                         prev_begin_pos[j] - zero_count + self._zero_counts[i])
-                self._node_begin_pos[i].append(self._length)
                 prev_begin_pos = self._node_begin_pos[i]
+
+        else:
+            for i in range(bits):
+                test_bit = 1 << (bits - i - 1)
+                next_array = [[], []]
+                self._wavelet_matrix.append(BitVectorMock(len(array)))
+
+                for j in range(len(cur_array)):
+                    n = cur_array[j]
+                    bit = 1 if (n & test_bit) else 0
+                    self._wavelet_matrix[i].Set(j, bit)
+                    next_array[bit].append(n)
+
+                self._zero_counts.append(len(next_array[0]))
+
+                cur_array = next_array[0] + next_array[1]
 
 
     def Access(self, pos):

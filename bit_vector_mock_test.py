@@ -12,7 +12,9 @@ class BitVectorMockTest(unittest.TestCase):
                       0,  1,  1,  1,  0,  1,  1,  0, 
                       0,  0,  0,  1,  0,  0,  0,  1,
                       ]
-        self.bit_vector = BitVectorMock(self.bits)
+        self.bit_vector = BitVectorMock(len(self.bits))
+        for i in range(len(self.bits)):
+            self.bit_vector.Set(i, self.bits[i])
 
     def test_peek(self):
         self.assertEqual(self.bit_vector.Peek(7), 0)
@@ -38,9 +40,9 @@ class BitVectorMockTest(unittest.TestCase):
         self.assertEqual(self.bit_vector.Select(1, 14), 32)
         self.assertEqual(self.bit_vector.Select(1, 13), 28)
         self.assertEqual(self.bit_vector.Select(1, 15), -1)
-        self.assertRaises(ValueError,self.bit_vector.Select, 1, 0)
+        self.assertEqual(self.bit_vector.Select(1, 0), -1)
+        self.assertEqual(self.bit_vector.Select(0, -1), -1)
         self.assertRaises(ValueError,self.bit_vector.Select, 3, 5)
-        self.assertRaises(ValueError, self.bit_vector.Select, 0, -1)
 
     def test_length(self):
         self.assertEqual(self.bit_vector.GetLength(), 32)
