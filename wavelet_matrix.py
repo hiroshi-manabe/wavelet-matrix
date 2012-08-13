@@ -148,7 +148,7 @@ class WaveletMatrix(object):
         to_end = True if end_pos == self._length and self._has_cache else False
 
         for i in range(self._bits):
-            bit = 1 if num & (1 << self._bits - i - 1) else 0
+            bit = 1 if num & (1 << (self._bits - i - 1)) else 0
             range_bits = end_pos - begin_pos
 
             if from_zero:
