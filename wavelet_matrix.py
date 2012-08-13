@@ -253,7 +253,8 @@ class WaveletMatrix(object):
                 end_pos = end_zero
 
             node_num |= bit << i
-            num |= bit << (self._bits - i - 1)
+            num <<= 1
+            num |= bit
 
         if self._has_cache:
             return (num, self.Select(
